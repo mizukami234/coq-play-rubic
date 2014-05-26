@@ -135,49 +135,12 @@ Section rotation_prop.
       let r := rot bot in
       s = r (r (r (r s))).
   Proof.
-    destruct s as [[[[[px00 px01] [px10 px11]]
-                     [[py00 py01] [py10 py11]]]
-                     [[pz00 pz01] [pz10 pz11]]]
-                   [[[[nx00 nx01] [nx10 nx11]]
-                     [[ny00 ny01] [ny10 ny11]]]
-                      [[nz00 nz01] [nz10 nz11]]]].
-    intro bot. case bot. intros i p.
-    case i; case p; simpl; reflexivity. Qed.
-
-  (*
-   * SX±,SY±,SZ±を順番に右に回転させる操作は、
-   *)
-  
-
-  Theorem rot_xyz_pos :
-    let r := rot (X, Pos) * rot (Y, Pos) * rot (Z, Pos) in
-    let r3 := r * r * r in
-    let r6 := r3 * r3 in
-    let r30 := r6 * r6 * r6 * r6 * r6 in
-    s = r30 s.
-  Proof.
-    destruct s as [[[[[px00 px01] [px10 px11]]
-                     [[py00 py01] [py10 py11]]]
-                     [[pz00 pz01] [pz10 pz11]]]
-                   [[[[nx00 nx01] [nx10 nx11]]
-                     [[ny00 ny01] [ny10 ny11]]]
-                      [[nz00 nz01] [nz10 nz11]]]].
-    simpl. unfold combine. simpl. reflexivity. Qed.
-
-  Theorem rot_zyx_neg :
-    let r := rot (X, Neg) * rot (Y, Neg) * rot (Z, Neg) in
-    let r3 := r * r * r in
-    let r12 := r3 * r3 * r3 * r3 in
-    let r60 := r12 * r12 * r12 * r12 * r12 in
-    s = r60 s.
-  Proof.
-    destruct s as [[[[[px00 px01] [px10 px11]]
-                     [[py00 py01] [py10 py11]]]
-                     [[pz00 pz01] [pz10 pz11]]]
-                   [[[[nx00 nx01] [nx10 nx11]]
-                     [[ny00 ny01] [ny10 ny11]]]
-                      [[nz00 nz01] [nz10 nz11]]]].
-    simpl. unfold combine. simpl. reflexivity. Qed.
-
+    case :s => [[[[[? ?] [? ?]]     (* SX+ *)
+                  [[? ?] [? ?]]]    (* SY+ *)
+                  [[? ?] [? ?]]]    (* SZ+ *)
+                [[[[? ?] [? ?]]     (* SX- *)
+                  [[? ?] [? ?]]]    (* SY- *)
+                  [[? ?] [? ?]]]].  (* SZ- *)
+    by case => [] [] [] //=. Qed.
 
 End rotation_prop.
