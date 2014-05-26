@@ -116,7 +116,7 @@ Definition rot (bot : surface_id_t) (s : state_t) :=
       end end.
 
 (*
- * 回転操作に関する命題を証明していく
+ * 回転操作に関する命題
  *)
 Open Scope fun_scope.
 
