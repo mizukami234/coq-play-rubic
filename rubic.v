@@ -159,7 +159,10 @@ Section rotation_prop.
                   [[? ?] [? ?]]]].  (* SZ- *)
     by case => [] [] [] //=. Qed.
 
-  (* +面と-面の両方を回転させる操作について *)
+  (* 対称な面を回転させる操作について *)
+  (*
+   * 対称な面の回転操作は可換(互いに影響を与えないため)
+   *)
   Variable W: id_t.
   Lemma rotw_comm:
     forall (pn : pn_t),
