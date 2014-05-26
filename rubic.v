@@ -64,9 +64,9 @@ Definition state_t := segment_t * segment_t.
 
 (*
  * 次に、状態から状態への変換(操作)を考える。
- * 面Sを底面とした時、下からn段目を右に回転させるという操作を、
- * rot S nと表す。
- * 2-Rubic場合、2段しかないので、下のみで十分。
+ * 一般に面Sを底面とした時、下からn段目を右に回転させるという操作を考えるべきだが、
+ * 2-Rubic場合、2段しかないので、底面を回転させる操作だけで十分。
+ * それを rot S と表す。
  *)
 Definition rot (bot : surface_id_t) (s : state_t) :=
   match s with
