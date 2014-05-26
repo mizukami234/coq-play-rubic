@@ -78,22 +78,22 @@ Definition rot (bot : surface_id_t) (s : state_t) :=
          ,((zn00, zn01), (zn10, zn11)))) =>
       match bot with
         | (X, Pos) => ((((xp10, xp00), (xp11, xp01))
-                       ,((yp00, zp00), (yp10, zp01))
+                       ,((zp01, yp01), (zp00, yp11))
                        ,((yn10, yn00), (zp10, zp11)))
                       ,(((xn00, xn01), (xn10, xn11))
                        ,((zn10, yn01), (zn11, yn11))
-                       ,((zn00, zn01), (yp11, yp01))))
+                       ,((zn00, zn01), (yp00, yp10))))
         | (Y, Pos) => ((((zn10, zn00), (xp10, xp11))
                        ,((yp10, yp00), (yp11, yp01))
                        ,((xp01, zp01), (xp00, zp11)))
                       ,(((xn00, xn01), (zp00, zp10))
                        ,((yn00, yn01), (yn10, yn11))
                        ,((xn10, zn01), (xn11, zn11))))
-        | (Z, Pos) => ((((xp00, yp00), (xp10, yp01))
+        | (Z, Pos) => ((((yp01, xp01), (yp00, xp11))
                        ,((xn10, xn00), (yp10, yp11))
                        ,((zp10, zp00), (zp11, zp01)))
                       ,(((yn10, xn01), (yn11, xn11))
-                       ,((yn00, yn01), (xp11, xp01))
+                       ,((yn00, yn01), (xp00, xp10))
                        ,((zn00, zn01), (zn10, zn11))))
         | (X, Neg) => ((((xp00, xp01), (xp10, xp11))
                        ,((yp00, zn00), (yp10, zn01))
@@ -114,6 +114,22 @@ Definition rot (bot : surface_id_t) (s : state_t) :=
                        ,((xn01, xn11), (yn10, yn11))
                        ,((zn10, zn00), (zn11, zn01))))
       end end.
+
+(*
+ * テスト用スペース
+ *)
+Section example.
+  Variables xp00 xp01 xp10 xp11 yp00 yp01 yp10 yp11 zp00 zp01 zp10 zp11: color_t.
+  Variables xn00 xn01 xn10 xn11 yn00 yn01 yn10 yn11 zn00 zn01 zn10 zn11: color_t.
+  Definition s := ((((xp00,xp01),(xp10,xp11))
+                   ,((yp00,yp01),(yp10,yp11))
+                   ,((zp00,zp01),(zp10,zp11))),
+                   (((xn00,xn01),(xn10,xn11))
+                   ,((yn00,yn01),(yn10,yn11))
+                   ,((zn00,zn01),(zn10,zn11)))).
+  Eval compute in rot (Z,Pos) (rot (Z,Neg) s).
+  Eval compute in rot (Z,Neg) (rot (Z,Pos) s).
+End example.
 
 (*
  * 回転操作に関する命題
@@ -143,4 +159,29 @@ Section rotation_prop.
                   [[? ?] [? ?]]]].  (* SZ- *)
     by case => [] [] [] //=. Qed.
 
+  (* +面と-面の両方を回転させる操作について *)
+  Variable W: id_t.
+  Lemma rotw_comm:
+    forall (pn : pn_t),
+      let r := rot (W, pn) in
+      let r' := rot (W, (pn_inv pn)) in
+      r * r' = r' * r.
+  Proof.
+    move => pn /=. apply fun_ext. rewrite /combine.
+    case => [[[[[? ?] [? ?]]     (* SX+ *)
+               [[? ?] [? ?]]]    (* SY+ *)
+               [[? ?] [? ?]]]    (* SZ+ *)
+             [[[[? ?] [? ?]]     (* SX- *)
+               [[? ?] [? ?]]]    (* SY- *)
+               [[? ?] [? ?]]]].  (* SZ- *)
+    case :W => []; case :pn => [];
+    rewrite //=.
+  Qed.
+
+
 End rotation_prop.
+
+(*
+ * 
+ *)
+
