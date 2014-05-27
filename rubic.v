@@ -14,6 +14,29 @@ Definition combine {S T U : Set} (g : S -> T) (f : T -> U) :=
   fun (s:S) => f (g s).
 Infix "*" := combine : fun_scope.
 
+Local Open Scope fun_scope.
+(* 関数合成の結合性 *)
+Theorem combine_assoc {R S T U : Set}:
+  forall (f : R -> S) (g : S -> T) (h : T -> U), (f * g) * h = f * (g * h).
+Proof.
+  move => f g h. apply fun_ext.
+    by rewrite /combine. Qed.
+
+(* id関数 *)
+Definition ident_of (S : Set) (x : S) : S := x.
+
+(* id関数はunit *)
+Theorem func_id_unitl {S T : Set}:
+  forall (f : S -> T), (ident_of S) * f = f.
+Proof. move => f. apply fun_ext. by rewrite /ident_of /combine /=. Qed.
+
+(* unitr *)
+Theorem func_id_unitr {S T : Set}:
+  forall (f : S -> T), f * (ident_of T) = f.
+Proof. move => f. apply fun_ext. by rewrite /ident_of /combine /=. Qed.
+
+Local Close Scope fun_scope.
+
 Open Scope type_scope.
 
 (* 一つの四角の状態 *)
@@ -68,7 +91,7 @@ Definition state_t := segment_t * segment_t.
  * 2-Rubic場合、2段しかないので、底面を回転させる操作だけで十分。
  * それを rot S と表す。
  *)
-Definition rot (bot : surface_id_t) (s : state_t) :=
+Definition rot (bot : surface_id_t) (s : state_t) : state_t :=
   match s with
     | ((((xp00, xp01), (xp10, xp11))
         ,((yp00, yp01), (yp10, yp11))
@@ -115,6 +138,8 @@ Definition rot (bot : surface_id_t) (s : state_t) :=
                        ,((zn10, zn00), (zn11, zn01))))
       end end.
 
+Definition op_id := ident_of state_t.
+
 (*
  * テスト用スペース
  *)
@@ -143,21 +168,22 @@ Definition pn_inv (pn: pn_t) : pn_t :=
   match pn with Pos => Neg | Neg => Pos end.
 
 Section rotation_prop.
-  Variable s : state_t.
-
   (* 4回回転すると元の状態に戻る *)
   Theorem rot_four_unit :
     forall (bot : surface_id_t),
       let r := rot bot in
-      s = r (r (r (r s))).
+      op_id = r * r * r * r.
   Proof.
-    case :s => [[[[[? ?] [? ?]]     (* SX+ *)
-                  [[? ?] [? ?]]]    (* SY+ *)
-                  [[? ?] [? ?]]]    (* SZ+ *)
-                [[[[? ?] [? ?]]     (* SX- *)
-                  [[? ?] [? ?]]]    (* SY- *)
-                  [[? ?] [? ?]]]].  (* SZ- *)
-    by case => [] [] [] //=. Qed.
+    case => [[][]];
+    move => /=;
+    apply fun_ext;
+    case => [[[[[? ?] [? ?]]     (* SX+ *)
+               [[? ?] [? ?]]]    (* SY+ *)
+               [[? ?] [? ?]]]    (* SZ+ *)
+             [[[[? ?] [? ?]]     (* SX- *)
+               [[? ?] [? ?]]]    (* SY- *)
+               [[? ?] [? ?]]]];  (* SZ- *)
+    by rewrite /combine /op_id /=. Qed.
 
   (* 対称な面を回転させる操作について *)
   (*
@@ -180,11 +206,35 @@ Section rotation_prop.
     case :W => []; case :pn => [];
     rewrite //=.
   Qed.
-
-
 End rotation_prop.
 
 (*
- * 
+ * 回転による同値類を考える。
+ * まず一回の回転操作を定義する。
  *)
+Definition rotate (W : id_t) :=
+  let r := rot (W, Pos) in
+  let s := rot (W, Neg) in
+  r*s*s*s.
+
+(*
+ * 回転は4回で元に戻る
+ *)
+Lemma rotate4_unit :
+  forall (W : id_t), let r := rotate W in
+    r * r * r * r = op_id.
+Proof.
+  rewrite /rotate => W.
+  set r := rot (W, Pos).
+  set s := rot (W, Neg).
+  move :(rotw_comm W Pos). rewrite /= -/r -/s => COM.
+  set AS := @combine_assoc state_t state_t state_t state_t.
+  rewrite combine_assoc (_ : r*s*s*s*(r*s*s*s) = r*r*s*s).
+  rewrite (_ : r*r*s*s*(r*r*s*s) = r*r*r*r*(s*s*s*s)).
+    by rewrite -(rot_four_unit(W, Pos)) -(rot_four_unit(W, Neg)) (func_id_unitl op_id).
+  congruence.
+  rewrite (_ : r*s*s*s*(r*s*s*s) = r*r*s*s*(s*s*s*s)).
+    by rewrite -(rot_four_unit(W, Neg)) (func_id_unitr (r*r*s*s)).
+    congruence. Qed.
+
 
