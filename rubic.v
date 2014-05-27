@@ -1,7 +1,8 @@
 Require Import ssreflect ssrbool eqtype.
 (* Coqルービックキューブ *)
-(* 2-Rubic 
- * ブロックが2x2x2のルービックキューブを考える。
+
+(*
+ * ここから準備
  *)
 
 (* 関数外延性公理 *)
@@ -25,27 +26,37 @@ Proof.
 (* id関数 *)
 Definition ident_of (S : Set) (x : S) : S := x.
 
-(* id関数はunit *)
+(* 左単位元になる *)
 Theorem func_id_unitl {S T : Set}:
   forall (f : S -> T), (ident_of S) * f = f.
 Proof. move => f. apply fun_ext. by rewrite /ident_of /combine /=. Qed.
 
-(* unitr *)
+(* 右単位元になる *)
 Theorem func_id_unitr {S T : Set}:
   forall (f : S -> T), f * (ident_of T) = f.
 Proof. move => f. apply fun_ext. by rewrite /ident_of /combine /=. Qed.
 
 Local Close Scope fun_scope.
+(*
+ * ここまで準備
+ *)
+
+
+
+(*
+ * 2-Rubic 
+ * ブロックが2x2x2のルービックキューブを考える。
+ *)
 
 Open Scope type_scope.
 
-(* 一つの四角の状態 *)
+(* 一つの枠の状態 *)
 Inductive color_t := C1|C2|C3|C4|C5|C6.
 
 (* 一つの面の状態
- * まず一次元の面集合(line)を定義し、その集合として面(surface)を定義する
- * | 0.0 | 0.1 | <- line0
- * | 1.0 | 1.1 | <- line1
+ * まず枠の組lineを定義し、lineの組として面surfaceを定義する
+ * | 0.0 | 0.1 | <- line 1
+ * | 1.0 | 1.1 | <- line 2
  *)
 Definition line_t := color_t * color_t.
 Definition surface_t := line_t * line_t.
@@ -87,7 +98,7 @@ Definition state_t := segment_t * segment_t.
 
 (*
  * 次に、状態から状態への変換(操作)を考える。
- * 一般に面Sを底面とした時、下からn段目を右に回転させるという操作を考えるべきだが、
+ * 一般に面Sを底面とした時、下からn段目を右に回転させるという操作を考えるべきであるが、
  * 2-Rubic場合、2段しかないので、底面を回転させる操作だけで十分。
  * それを rot S と表す。
  *)
@@ -138,7 +149,11 @@ Definition rot (bot : surface_id_t) (s : state_t) : state_t :=
                        ,((zn10, zn00), (zn11, zn01))))
       end end.
 
+(* 単位操作(変化しない) *)
 Definition op_id := ident_of state_t.
+
+(* 操作の結合性 *)
+Definition op_assoc := @combine_assoc state_t state_t state_t state_t.
 
 (*
  * テスト用スペース
@@ -156,13 +171,14 @@ Section example.
   Eval compute in rot (Z,Neg) (rot (Z,Pos) s).
 End example.
 
+
 (*
  * 回転操作に関する命題
  *)
 Open Scope fun_scope.
 
 (* 準備
- * Pos, Negに対しそれぞれ反対側をとる操作 pn_inv を定義する。
+ * +, -に対しそれぞれ反対側をとる操作 pn_inv を定義する。
  *)
 Definition pn_inv (pn: pn_t) : pn_t :=
   match pn with Pos => Neg | Neg => Pos end.
@@ -185,7 +201,6 @@ Section rotation_prop.
                [[? ?] [? ?]]]];  (* SZ- *)
     by rewrite /combine /op_id /=. Qed.
 
-  (* 対称な面を回転させる操作について *)
   (*
    * 対称な面の回転操作は可換(互いに影響を与えないため)
    *)
@@ -227,14 +242,15 @@ Proof.
   rewrite /rotate => W.
   set r := rot (W, Pos).
   set s := rot (W, Neg).
-  move :(rotw_comm W Pos). rewrite /= -/r -/s => COM.
-  set AS := @combine_assoc state_t state_t state_t state_t.
-  rewrite combine_assoc (_ : r*s*s*s*(r*s*s*s) = r*r*s*s).
+  move :(rotw_comm W Pos).
+  rewrite /= -/r -/s => COM.
+  set AS := op_assoc.
+  rewrite op_assoc (_ : r*s*s*s*(r*s*s*s) = r*r*s*s).
   rewrite (_ : r*r*s*s*(r*r*s*s) = r*r*r*r*(s*s*s*s)).
     by rewrite -(rot_four_unit(W, Pos)) -(rot_four_unit(W, Neg)) (func_id_unitl op_id).
-  congruence.
+    (* = congruenceはもっと早くできるか？ *)
+    congruence.
   rewrite (_ : r*s*s*s*(r*s*s*s) = r*r*s*s*(s*s*s*s)).
     by rewrite -(rot_four_unit(W, Neg)) (func_id_unitr (r*r*s*s)).
     congruence. Qed.
-
 
