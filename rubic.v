@@ -254,3 +254,87 @@ Proof.
     by rewrite -(rot_four_unit(W, Neg)) (func_id_unitr (r*r*s*s)).
     congruence. Qed.
 
+(*
+ * 回転同値関係
+ *)
+Inductive rotate_eq (s : state_t) : state_t -> Prop :=
+| rotate_refl : rotate_eq s s
+| rotate_stepr : forall (t : state_t) (W : id_t),
+                  rotate_eq s t -> rotate_eq s (rotate W t).
+
+(*
+ * 補題1 : s = rotate W (rotate W (rotate W (rotate W s)))
+ *)
+Lemma rotate_lemma1 :
+  forall (s : state_t) (W : id_t),
+    s = (rotate W (rotate W (rotate W (rotate W s)))).
+Proof.
+  move => s W.
+  set (f := rotate W).
+  rewrite (_ : s = op_id s).
+  rewrite (_ : f (f (f (f s))) = (f * f * f * f) s).
+  by rewrite rotate4_unit.
+  by rewrite /combine.
+  rewrite //=. Qed.
+
+(*
+ * 補題2 : rotate W s 〜 s
+ *)
+Lemma rotate_lemma2 :
+  forall (s : state_t) (W : id_t), rotate_eq (rotate W s) s.
+Proof. move => s W.
+  rewrite {2} (rotate_lemma1 s W).
+  set (f := rotate W).
+  do 3 apply rotate_stepr.
+  by apply rotate_refl. Qed.
+
+(*
+ * 補題3 : s 〜 t ならば rotate W s 〜 t
+ *)
+Lemma rotate_stepl :
+  forall (s t : state_t) (W : id_t),
+    rotate_eq s t -> rotate_eq (rotate W s) t.
+Proof.
+  move => s t W.
+  elim. by apply rotate_lemma2.
+  move => t' W' Rst' Rrst'.
+  by apply rotate_stepr. Qed.
+
+(*
+ * 対称律
+ *)
+Theorem rotate_symm :
+  forall (s t : state_t),
+    rotate_eq s t -> rotate_eq t s.
+Proof.
+  move => s t.
+  elim.
+  by apply rotate_refl.
+  move => u W Rsu Rus.
+  by apply rotate_stepl. Qed.
+
+(*
+ * 補題4 : rotate W s 〜 t ならば s 〜 t
+ *)
+Lemma rotate_lemma4 :
+  forall (s t: state_t) (W : id_t),
+    rotate_eq (rotate W s) t -> rotate_eq s t.
+Proof.
+  move => s t W Rrst.
+  rewrite (rotate_lemma1 s W) (rotate_lemma1 t W).
+  set (f := rotate W).
+  do 3 apply rotate_stepl.
+  by do 4 apply rotate_stepr. Qed.
+
+(*
+ * 推移律
+ *)
+Theorem rotate_trans :
+  forall (s t u : state_t),
+    rotate_eq s t -> rotate_eq t u -> rotate_eq s u.
+Proof.
+  move => s t u.
+  elim. by [].
+  move => v W Rsv Rvu_su Rrvu.
+  apply Rvu_su.
+  by apply (rotate_lemma4 v u W). Qed.
