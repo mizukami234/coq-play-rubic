@@ -289,7 +289,7 @@ Proof. move => s W.
   by apply rotate_refl. Qed.
 
 (*
- * 補題3 : s 〜 t ならば rotate W s 〜 t
+ * 左側回転補題 : s 〜 t ならば rotate W s 〜 t
  *)
 Lemma rotate_stepl :
   forall (s t : state_t) (W : id_t),
@@ -314,9 +314,9 @@ Proof.
   by apply rotate_stepl. Qed.
 
 (*
- * 補題4 : rotate W s 〜 t ならば s 〜 t
+ * 補題3 : rotate W s 〜 t ならば s 〜 t
  *)
-Lemma rotate_lemma4 :
+Lemma rotate_lemma3 :
   forall (s t: state_t) (W : id_t),
     rotate_eq (rotate W s) t -> rotate_eq s t.
 Proof.
@@ -337,4 +337,4 @@ Proof.
   elim. by [].
   move => v W Rsv Rvu_su Rrvu.
   apply Rvu_su.
-  by apply (rotate_lemma4 v u W). Qed.
+  by apply (rotate_lemma3 v u W). Qed.
