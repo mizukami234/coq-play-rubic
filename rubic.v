@@ -338,3 +338,31 @@ Proof.
   move => v W Rsv Rvu_su Rrvu.
   apply Rvu_su.
   by apply (rotate_lemma3 v u W). Qed.
+
+(*
+ * 回転同値類
+ *)
+Inductive RotateEqClass : Set :=
+| RotateEqIntro : state_t -> RotateEqClass.
+Notation " 'ROT' [ s ] " := (RotateEqIntro s).
+Axiom RotateEqAxiom :
+  forall (s t : state_t), rotate_eq s t -> ROT[s] = ROT[t].
+
+(*
+ * +面を回すのと、-面を回すのでは、回転同値類上では等価操作になる
+ *)
+Theorem rotate_pn_eq :
+  forall (W : id_t) (s : state_t),
+    ROT[rot (W,Pos) s] = ROT[rot (W,Neg) s].
+Proof.
+  move => W s.
+  apply RotateEqAxiom.
+  rewrite (rotate_lemma1 (rot (W, Neg) s) W) /rotate.
+  do 3 apply rotate_stepr.
+  set (f := rot (W, Pos)).
+  set (g := rot (W, Neg)).
+  rewrite (_ : (f * g * g * g) (g s) = (f * (g * g * g * g)) s).
+  rewrite -(rot_four_unit (W, Neg)) (func_id_unitr).
+  by apply rotate_refl.
+  by rewrite /=.
+
