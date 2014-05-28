@@ -11,14 +11,14 @@ Axiom fun_ext :
     (forall x:T, f x = g x) <-> (f = g).
 
 (* 関数合成 *)
-Definition combine {S T U : Set} (g : S -> T) (f : T -> U) :=
-  fun (s:S) => f (g s).
+Definition combine {S T U : Set} (g : T -> U) (f : S -> T) :=
+  fun (s:S) => g (f s).
 Infix "*" := combine : fun_scope.
 
 Local Open Scope fun_scope.
 (* 関数合成の結合性 *)
 Theorem combine_assoc {R S T U : Set}:
-  forall (f : R -> S) (g : S -> T) (h : T -> U), (f * g) * h = f * (g * h).
+  forall (f : T -> U) (g : S -> T) (h : R -> S), (f * g) * h = f * (g * h).
 Proof.
   move => f g h. apply fun_ext.
     by rewrite /combine. Qed.
@@ -28,12 +28,12 @@ Definition ident_of (S : Set) (x : S) : S := x.
 
 (* 左単位元になる *)
 Theorem func_id_unitl {S T : Set}:
-  forall (f : S -> T), (ident_of S) * f = f.
+  forall (f : S -> T), (ident_of T) * f = f.
 Proof. move => f. apply fun_ext. by rewrite /ident_of /combine /=. Qed.
 
 (* 右単位元になる *)
 Theorem func_id_unitr {S T : Set}:
-  forall (f : S -> T), f * (ident_of T) = f.
+  forall (f : S -> T), f * (ident_of S) = f.
 Proof. move => f. apply fun_ext. by rewrite /ident_of /combine /=. Qed.
 
 Local Close Scope fun_scope.
