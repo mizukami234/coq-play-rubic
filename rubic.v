@@ -70,8 +70,8 @@ Definition surface_t := line_t * line_t.
  *        <-----------
  *         Fx-
  *
- * 6つの面の3つずつに分解し、2つのsegment
- * {SX+, SY+, SZ+} と {SX-, SY-, SZ-} とする。
+ * 6つの面の3つずつに分解し、2つのsegmentを
+ * {SX+, SY+, SZ+} 、 {SX-, SY-, SZ-} と名前をつける。
  * 
  * 次に、以下の組について、向きが反対になるようにして結合する。
  *  SX+.Fx+ , SY+.Fy+
@@ -89,6 +89,8 @@ Definition surface_t := line_t * line_t.
  *  SY+.Fx- , SZ-.Fy+
  *  SZ+.Fx- , SX-.Fy+
  * 以上により、6面体が構成される。
+ *
+ * W ∈ {X,Y,Z}に対し、SW+面の反対側は、SW-となるようになっている。
  *)
 Inductive id_t := X | Y | Z.
 Inductive pn_t := Pos | Neg.
@@ -349,7 +351,7 @@ Axiom RotateEqAxiom :
   forall (s t : state_t), rotate_eq s t -> ROT[s] = ROT[t].
 
 (*
- * +面を回すのと、-面を回すのでは、回転同値類上では等価操作になる
+ * +面を回すのと、-面を回すのは、回転同値類上では等しい操作になる
  *)
 Theorem rotate_pn_eq :
   forall (W : id_t) (s : state_t),
