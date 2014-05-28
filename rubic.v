@@ -103,6 +103,7 @@ Definition state_t := segment_t * segment_t.
  * 一般に面Sを底面とした時、下からn段目を右に回転させるという操作を考えるべきであるが、
  * 2-Rubic場合、2段しかないので、底面を回転させる操作だけで十分。
  * それを rot S と表す。
+ * この単位操作を"rot"ということにする。
  *)
 Definition rot (bot : surface_id_t) (s : state_t) : state_t :=
   match s with
@@ -175,7 +176,7 @@ End example.
 
 
 (*
- * 回転操作に関する命題
+ * rotに関する命題
  *)
 Open Scope fun_scope.
 
@@ -186,7 +187,7 @@ Definition pn_inv (pn: pn_t) : pn_t :=
   match pn with Pos => Neg | Neg => Pos end.
 
 Section rotation_prop.
-  (* 4回回転すると元の状態に戻る *)
+  (* 4回rotすると元の状態に戻る *)
   Theorem rot_four_unit :
     forall (bot : surface_id_t),
       let r := rot bot in
@@ -204,7 +205,7 @@ Section rotation_prop.
     by rewrite /combine /op_id /=. Qed.
 
   (*
-   * 対称な面の回転操作は可換(互いに影響を与えないため)
+   * 対称な面のrot操作は可換(互いに影響を与えないため)
    *)
   Variable W: id_t.
   Lemma rotw_comm:
@@ -226,8 +227,10 @@ Section rotation_prop.
 End rotation_prop.
 
 (*
- * 回転による同値類を考える。
- * まず一回の回転操作を定義する。
+ * これまでの定義では、向きを変えただけの状態でも、異なるものとみなされる。
+ * そこで、向きだけが異なる2つの状態上に同値関係を作る。
+ * まず一回の向き回転操作を定義する。
+ * この操作を"rotate"ということにする。
  *)
 Definition rotate (W : id_t) :=
   let r := rot (W, Pos) in
@@ -235,7 +238,7 @@ Definition rotate (W : id_t) :=
   r*s*s*s.
 
 (*
- * 回転は4回で元に戻る
+ * rotateは4回で元に戻る
  *)
 Lemma rotate4_unit :
   forall (W : id_t), let r := rotate W in
@@ -257,7 +260,10 @@ Proof.
     congruence. Qed.
 
 (*
- * 回転同値関係
+ * 回転同値関係 (〜)
+ * s 〜 s および
+ * s 〜 t ならば s 〜 rotate W t
+ * によって帰納的に定義する。
  *)
 Inductive rotate_eq (s : state_t) : state_t -> Prop :=
 | rotate_refl : rotate_eq s s
@@ -351,7 +357,7 @@ Axiom RotateEqAxiom :
   forall (s t : state_t), rotate_eq s t -> ROT[s] = ROT[t].
 
 (*
- * +面を回すのと、-面を回すのは、回転同値類上では等しい操作になる
+ * 上面をrotするのと、底面をrotするのは、回転同値類上では等しい操作になる
  *)
 Theorem rotate_pn_eq :
   forall (W : id_t) (s : state_t),
